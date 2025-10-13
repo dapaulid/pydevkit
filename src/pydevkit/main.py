@@ -57,11 +57,13 @@ def main():
         formatter_class=parser.formatter_class,
         help="run static type checker",
     )
-    sp.set_defaults(func=cmd_typecheck)    
+    sp.set_defaults(func=cmd_typecheck)
 
     # 'format' command
     sp = subparsers.add_parser(
-        "format", formatter_class=parser.formatter_class, help="format code to style guide"
+        "format",
+        formatter_class=parser.formatter_class,
+        help="format code to style guide",
     )
     sp.set_defaults(func=cmd_format)
 
@@ -83,14 +85,18 @@ def main():
 def cmd_lint(args):
     utils.run_task("lint", "ruff --config config/ruff.toml check --fix")
 
+
 def cmd_typecheck(args):
     utils.run_task("typecheck", "mypy --config-file config/mypy.ini .")
+
 
 def cmd_format(args):
     utils.run_task("format", "ruff --config config/ruff.toml format")
 
+
 def cmd_clean(args):
     utils.remove_folder("build")
+
 
 # -------------------------------------------------------------------------------
 # end of file

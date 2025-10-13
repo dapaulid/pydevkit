@@ -47,6 +47,7 @@ def run_task(name: str, cmdline: str):
 def remove_folder(path):
     if not os.path.exists(path):
         return
+
     def handle_exc(p, e):
         try:
             os.chmod(p, stat.S_IWRITE)
@@ -56,6 +57,7 @@ def remove_folder(path):
                 os.remove(p)
         except Exception:
             pass  # avoid recursion hell if something’s really locked
+
     shutil.rmtree(path, onexc=handle_exc)
 
 
