@@ -8,6 +8,8 @@ import rich_argparse
 
 import pydevkit as pkg
 
+from . import utils
+
 # -------------------------------------------------------------------------------
 # constants
 # -------------------------------------------------------------------------------
@@ -41,11 +43,33 @@ def main():
     # general options
     parser.add_argument("--version", action="version", version=pkg.__version__)
 
-    # example command
-    greet_parser = subparsers.add_parser(
-        "lint", formatter_class=parser.formatter_class, help="analyse code for potential errors"
+    # 'lint' command
+    sp = subparsers.add_parser(
+        "lint",
+        formatter_class=parser.formatter_class,
+        help="analyse code for potential errors",
     )
-    greet_parser.set_defaults(func=cmd_lint)
+    sp.set_defaults(func=cmd_lint)
+
+    # 'typecheck' command
+    sp = subparsers.add_parser(
+        "typecheck",
+        formatter_class=parser.formatter_class,
+        help="run static type checker",
+    )
+    sp.set_defaults(func=cmd_typecheck)    
+
+    # 'format' command
+    sp = subparsers.add_parser(
+        "format", formatter_class=parser.formatter_class, help="format code to style guide"
+    )
+    sp.set_defaults(func=cmd_format)
+
+    # 'clean' command
+    sp = subparsers.add_parser(
+        "clean", formatter_class=parser.formatter_class, help="delete build artifacts"
+    )
+    sp.set_defaults(func=cmd_clean)
 
     # parse and execute command line
     args = parser.parse_args()
@@ -57,8 +81,16 @@ def main():
 # -------------------------------------------------------------------------------
 #
 def cmd_lint(args):
-    print("hello from linter")
+    utils.run_task("lint", "ruff --config config/ruff.toml check --fix")
 
+def cmd_typecheck(args):
+    utils.run_task("typecheck", "mypy --config-file config/mypy.ini .")
+
+def cmd_format(args):
+    utils.run_task("format", "ruff --config config/ruff.toml format")
+
+def cmd_clean(args):
+    utils.remove_folder("build")
 
 # -------------------------------------------------------------------------------
 # end of file
