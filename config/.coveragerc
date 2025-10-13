@@ -1,0 +1,13 @@
+# Coverage settings
+# https://coverage.readthedocs.io/en/latest/config.html
+[run]
+# Files to be included in coverage report
+# see also https://nedbatchelder.com/blog/202008/you_should_include_your_tests_in_coverage.html
+source = 
+    src
+    tests
+branch = true
+data_file = build/.coverage
+
+[report]
+show_missing = true

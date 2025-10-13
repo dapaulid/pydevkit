@@ -1,0 +1,34 @@
+# https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+
+[project]
+name = "pydevkit"
+version = "0.1.1"
+description = "A best practice toolkit for Python development"
+readme = "README.md"
+authors = [
+    { name = "Daniel Pauli", email = "dapaulid@gmail.com" }
+]
+requires-python = ">=3.12.10"
+dependencies = [
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.13.3",
+    "rich>=14.2.0",
+    "rich-argparse>=1.7.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/dapaulid/pydevkit"
+
+[project.scripts]
+pyd = "pydevkit.main:main"
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+]
+

@@ -1,0 +1,14 @@
+{
+	// These are the parameters for the VSCode Test Explorer and Test Coverage (Testing view)
+	// TODO --cov-branch must be specified explicitly and not picked up from .coveragerc?
+	"python.testing.pytestArgs": [
+		"--cov",
+		"--cov-config=.coveragerc",
+		"--cov-branch"
+	],
+	"python.testing.unittestEnabled": false,
+	"python.testing.pytestEnabled": true,
+	"files.exclude": {
+		"**/__pycache__/": true
+	}	
+}
