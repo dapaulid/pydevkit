@@ -12,6 +12,9 @@ from pathlib import Path
 from timeit import default_timer as timer
 
 import psutil
+from rich.console import Console
+
+console = Console()
 
 
 # -------------------------------------------------------------------------------
@@ -26,19 +29,22 @@ def run_task(name: str, cmdline: str):
     start_time = timer()
     try:
         ret = subprocess.call(cmd, shell=False)
-        status = "succeeded" if ret == 0 else "failed"
+        status = "[bold green]OK[/]" if ret == 0 else "[bold red]failed[/]"
     except FileNotFoundError:
-        print(f"[ {name} failed, command not found: {cmd[0]} ]")
+        print(f"[ {name} [bold red]failed[/], command not found: {cmd[0]} ]")
         sys.exit(127)
     except KeyboardInterrupt:
         ret = 130  # Standard signal code for Ctrl-C
-        status = "cancelled"
+        status = "[bold yellow]cancelled[/]"
         print()  # newline after ^C
     elapsed = timer() - start_time
     cpu = psutil.cpu_percent()
 
     # print summary
-    print(f"[ {name} {status}, took {elapsed:.3f}s at {cpu:.0f}% CPU ]")
+    console.print(
+        f"[ {name:<7} ] {status}  [black]took {elapsed:.3f}s at {cpu:.0f}% CPU[/]",
+        highlight=False,
+    )
 
     # TODO raise instead of exiting?
     if ret != 0:
@@ -46,20 +52,17 @@ def run_task(name: str, cmdline: str):
 
 
 def remove_folder(path):
+    # https://docs.python.org/3/library/shutil.html#shutil-rmtree-example
+
     if not os.path.exists(path):
         return
 
-    def handle_exc(p, e):
-        try:
-            os.chmod(p, stat.S_IWRITE)
-            if os.path.isdir(p):
-                shutil.rmtree(p, ignore_errors=True)
-            else:
-                os.remove(p)
-        except Exception:
-            pass  # avoid recursion hell if something’s really locked
+    def remove_readonly(func, path, _):
+        # Clear the readonly bit and reattempt the removal
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
 
-    shutil.rmtree(path, onexc=handle_exc)
+    shutil.rmtree(path, onexc=remove_readonly)
 
 
 def config_path(filename: str) -> str:

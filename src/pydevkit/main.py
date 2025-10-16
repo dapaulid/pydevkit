@@ -51,13 +51,13 @@ def main():
     )
     sp.set_defaults(func=cmd_lint)
 
-    # 'typecheck' command
+    # 'typing' command
     sp = subparsers.add_parser(
-        "typecheck",
+        "typing",
         formatter_class=parser.formatter_class,
         help="run static type checker",
     )
-    sp.set_defaults(func=cmd_typecheck)
+    sp.set_defaults(func=cmd_typing)
 
     # 'format' command
     sp = subparsers.add_parser(
@@ -100,16 +100,18 @@ def main():
 #
 def cmd_lint(args):
     utils.run_task(
-        "lint", f"ruff --config {utils.config_path('ruff.toml')} check --fix"
+        "lint", f"ruff -q --config {utils.config_path('ruff.toml')} check --fix"
     )
 
 
-def cmd_typecheck(args):
-    utils.run_task("typecheck", f"mypy --config-file {utils.config_path('mypy.ini')} .")
+def cmd_typing(args):
+    utils.run_task("typing", f"mypy --config-file {utils.config_path('mypy.ini')} .")
 
 
 def cmd_format(args):
-    utils.run_task("format", f"ruff --config {utils.config_path('ruff.toml')} format")
+    utils.run_task(
+        "format", f"ruff -q --config {utils.config_path('ruff.toml')} format"
+    )
 
 
 def cmd_test(args):
@@ -121,8 +123,9 @@ def cmd_test(args):
 
 def cmd_build(args):
     cmd_lint(args)
-    cmd_typecheck(args)
+    cmd_typing(args)
     cmd_format(args)
+    cmd_test(args)
 
 
 def cmd_clean(args):
