@@ -67,6 +67,22 @@ def main():
     )
     sp.set_defaults(func=cmd_format)
 
+    # 'test' command
+    sp = subparsers.add_parser(
+        "test",
+        formatter_class=parser.formatter_class,
+        help="run tests including coverage",
+    )
+    sp.set_defaults(func=cmd_test)
+
+    # 'build' command
+    sp = subparsers.add_parser(
+        "build",
+        formatter_class=parser.formatter_class,
+        help="runs lint, typecheck, format",
+    )
+    sp.set_defaults(func=cmd_build)
+
     # 'clean' command
     sp = subparsers.add_parser(
         "clean", formatter_class=parser.formatter_class, help="delete build artifacts"
@@ -83,15 +99,30 @@ def main():
 # -------------------------------------------------------------------------------
 #
 def cmd_lint(args):
-    utils.run_task("lint", "ruff --config config/ruff.toml check --fix")
+    utils.run_task(
+        "lint", f"ruff --config {utils.config_path('ruff.toml')} check --fix"
+    )
 
 
 def cmd_typecheck(args):
-    utils.run_task("typecheck", "mypy --config-file config/mypy.ini .")
+    utils.run_task("typecheck", f"mypy --config-file {utils.config_path('mypy.ini')} .")
 
 
 def cmd_format(args):
-    utils.run_task("format", "ruff --config config/ruff.toml format")
+    utils.run_task("format", f"ruff --config {utils.config_path('ruff.toml')} format")
+
+
+def cmd_test(args):
+    utils.run_task(
+        "test",
+        f"pytest -c {utils.config_path('pytest.ini')} --rootdir . --cov --cov-config {utils.config_path('.coveragerc')}",
+    )
+
+
+def cmd_build(args):
+    cmd_lint(args)
+    cmd_typecheck(args)
+    cmd_format(args)
 
 
 def cmd_clean(args):

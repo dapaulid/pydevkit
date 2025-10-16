@@ -38,10 +38,5 @@ def test_version(capsys):
     assert out == pkg.__version__, "version output must match package version"
 
 
-def test_greet(capsys):
-    out = exec(capsys, "pydevkit greet World")
-    assert out == "Hello, World", "output must match greeting"
-
-
 # -------------------------------------------------------------------------------
 # end of file

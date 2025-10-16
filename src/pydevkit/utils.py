@@ -8,6 +8,7 @@ import shutil
 import stat
 import subprocess
 import sys
+from pathlib import Path
 from timeit import default_timer as timer
 
 import psutil
@@ -59,6 +60,14 @@ def remove_folder(path):
             pass  # avoid recursion hell if something’s really locked
 
     shutil.rmtree(path, onexc=handle_exc)
+
+
+def config_path(filename: str) -> str:
+    root_dir = Path(__file__).resolve().parent.parent.parent
+    cfg_path = root_dir / "config" / filename
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"Config file not found: {cfg_path}")
+    return cfg_path.as_posix()
 
 
 # -------------------------------------------------------------------------------
