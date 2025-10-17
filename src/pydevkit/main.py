@@ -43,6 +43,14 @@ def main():
     # general options
     parser.add_argument("--version", action="version", version=pkg.__version__)
 
+    # 'init' command
+    sp = subparsers.add_parser(
+        "init",
+        formatter_class=parser.formatter_class,
+        help="generate project files",
+    )
+    sp.set_defaults(func=cmd_init)
+
     # 'lint' command
     sp = subparsers.add_parser(
         "lint",
@@ -98,6 +106,9 @@ def main():
 # commands
 # -------------------------------------------------------------------------------
 #
+def cmd_init(args):
+    utils.copy_dir_contents("templates/project", ".")
+
 def cmd_lint(args):
     utils.run_task(
         "lint", f"ruff -q --config {utils.config_path('ruff.toml')} check --fix"

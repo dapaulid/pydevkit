@@ -64,6 +64,19 @@ def remove_folder(path):
 
     shutil.rmtree(path, onexc=remove_readonly)
 
+def copy_dir_contents(source_dir, target_dir):
+    for root, dirs, files in os.walk(source_dir):
+        # Compute the relative path from the source
+        relative_path = os.path.relpath(root, source_dir)
+        # Create the corresponding path in the target directory
+        target_path = os.path.join(target_dir, relative_path)
+        os.makedirs(target_path, exist_ok=True)
+
+        for file in files:
+            source_file = os.path.normpath(os.path.join(root, file))
+            target_file = os.path.normpath(os.path.join(target_path, file))
+            print(f"writing {target_file}")
+            shutil.copy2(source_file, target_file)
 
 def config_path(filename: str) -> str:
     root_dir = Path(__file__).resolve().parent.parent.parent
