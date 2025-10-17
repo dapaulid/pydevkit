@@ -109,6 +109,7 @@ def main():
 def cmd_init(args):
     utils.copy_dir_contents("templates/project", ".")
 
+
 def cmd_lint(args):
     utils.run_task(
         "lint", f"ruff -q --config {utils.config_path('ruff.toml')} check --fix"
