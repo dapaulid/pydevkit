@@ -49,6 +49,9 @@ def run_task(name: str, output_header: bool = False):
     except SystemExit as e:
         ret = e.code if isinstance(e.code, int) else 1
         status = "[bold yellow]cancelled[/]" if ret == 130 else "[bold red]failed[/]"
+    except subprocess.CalledProcessError:
+        ret = 1
+        status = "[bold red]failed[/]"
     except Exception as e:
         ret = 1
         status = "[bold red]failed[/]: %s" % e
