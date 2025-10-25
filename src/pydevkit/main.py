@@ -111,37 +111,38 @@ def cmd_init(args):
 
 
 def cmd_lint(args):
-    utils.run_task(
-        "lint", f"ruff -q --config {utils.config_path('ruff.toml')} check --fix"
-    )
+    with utils.run_task("lint"):
+        utils.exec(f"ruff -q --config {utils.config_path('ruff.toml')} check --fix")
 
 
 def cmd_typing(args):
-    utils.run_task("typing", f"mypy --config-file {utils.config_path('mypy.ini')} .")
+    with utils.run_task("typing"):
+        utils.exec(f"mypy --config-file {utils.config_path('mypy.ini')} .")
 
 
 def cmd_format(args):
-    utils.run_task(
-        "format", f"ruff -q --config {utils.config_path('ruff.toml')} format"
-    )
+    with utils.run_task("format"):
+        utils.exec(f"ruff -q --config {utils.config_path('ruff.toml')} format")
 
 
 def cmd_test(args):
-    utils.run_task(
-        "test",
-        f"pytest -c {utils.config_path('pytest.ini')} --rootdir . --cov --cov-config {utils.config_path('.coveragerc')}",
-    )
+    with utils.run_task("test"):
+        utils.exec(
+            f"pytest -c {utils.config_path('pytest.ini')} --rootdir . --cov --cov-config {utils.config_path('.coveragerc')}"
+        )
 
 
 def cmd_build(args):
-    cmd_lint(args)
-    cmd_typing(args)
-    cmd_format(args)
-    cmd_test(args)
+    with utils.run_task("build", output_header=True):
+        cmd_lint(args)
+        cmd_typing(args)
+        cmd_format(args)
+        cmd_test(args)
 
 
 def cmd_clean(args):
-    utils.remove_folder("build")
+    with utils.run_task("clean"):
+        utils.remove_folder("build")
 
 
 # -------------------------------------------------------------------------------
