@@ -3,8 +3,10 @@
 # -------------------------------------------------------------------------------
 #
 import argparse
+import os
 
 import rich_argparse
+from rich import print
 
 import pydevkit as pkg
 
@@ -19,6 +21,12 @@ USAGE_EXAMPLES = """
   {0} greet Alice
   {0} greet Bob --excited
 """
+
+# path to monkeytype sqlite3 database file
+# NOTE: it's not easy to put this into the 'build' output directory,
+# since monkeytype has no param for passing a path, and changing
+# working directory messes with running module paths
+AUTOTYPE_CACHE = "monkeytype.sqlite3"
 
 
 # -------------------------------------------------------------------------------
@@ -50,6 +58,15 @@ def main():
         help="generate project files",
     )
     sp.set_defaults(func=cmd_init)
+
+    # 'run' command
+    sp = subparsers.add_parser(
+        "run",
+        formatter_class=parser.formatter_class,
+        help="run main script",
+    )
+    sp.set_defaults(func=cmd_run)
+    sp.add_argument("params", nargs=argparse.REMAINDER)
 
     # 'lint' command
     sp = subparsers.add_parser(
@@ -97,6 +114,16 @@ def main():
     )
     sp.set_defaults(func=cmd_clean)
 
+    # 'autotype' command
+    sp = subparsers.add_parser(
+        "autotype", formatter_class=parser.formatter_class, help="add type annotations"
+    )
+    sp.add_argument(
+        "subcommand", nargs="?", choices=["apply", "enable", "disable"], default="apply"
+    )
+
+    sp.set_defaults(func=cmd_autotype)
+
     # parse and execute command line
     args = parser.parse_args()
     args.func(args)
@@ -110,26 +137,51 @@ def cmd_init(args):
     utils.copy_dir_contents("templates/project", ".")
 
 
+def cmd_run(args):
+    with utils.run_task("run"):
+        if (
+            is_autotype_enabled()
+            and "autotype" not in args.params  # avoid self-referential problem
+        ):
+            print("[ autotype ] collecting type data...")
+            cmd = ["monkeytype", "run", "-m", "pydevkit.main"]
+        else:
+            cmd = ["uv", "run", "pyd"]
+        cmd += args.params
+        utils.exec(cmd)
+
+
 def cmd_lint(args):
     with utils.run_task("lint"):
-        utils.exec(f"ruff -q --config {utils.config_path('ruff.toml')} check --fix")
+        cmd = ["ruff"]
+        cmd += ["-q", "--config", utils.config_path("ruff.toml")]
+        cmd += ["check", "--fix"]
+        utils.exec(cmd)
 
 
 def cmd_typing(args):
     with utils.run_task("typing"):
-        utils.exec(f"mypy --config-file {utils.config_path('mypy.ini')} .")
+        cmd = ["mypy"]
+        cmd += ["--config-file", utils.config_path("mypy.ini")]
+        cmd += ["."]
+        utils.exec(cmd)
 
 
 def cmd_format(args):
     with utils.run_task("format"):
-        utils.exec(f"ruff -q --config {utils.config_path('ruff.toml')} format")
+        cmd = ["ruff"]
+        cmd += ["-q", "--config", utils.config_path("ruff.toml")]
+        cmd += ["format"]
+        utils.exec(cmd)
 
 
 def cmd_test(args):
     with utils.run_task("test"):
-        utils.exec(
-            f"pytest -c {utils.config_path('pytest.ini')} --rootdir . --cov --cov-config {utils.config_path('.coveragerc')}"
-        )
+        cmd = ["pytest"]
+        cmd += ["-c", utils.config_path("pytest.ini")]
+        cmd += ["--rootdir", "."]
+        cmd += ["--cov", "--cov-config", utils.config_path(".coveragerc")]
+        utils.exec(cmd)
 
 
 def cmd_build(args):
@@ -143,6 +195,46 @@ def cmd_build(args):
 def cmd_clean(args):
     with utils.run_task("clean"):
         utils.remove_folder("build")
+
+
+def cmd_autotype(args):
+    with utils.run_task("autotype"):
+        # check if type collection is enabled
+        enabled = is_autotype_enabled()
+
+        if args.subcommand == "apply":
+            # get modules with type data
+            modules = utils.eval(["monkeytype", "list-modules"]).splitlines()
+            if not modules:
+                utils.die("no modules with type data found")
+            # apply types to each module
+            for module in modules:
+                print(f"applying types: '{module}'")
+                utils.exec(["monkeytype", "apply", module], silent=True)
+            if not enabled:
+                # remove cache to avoid inadvertent data collection
+                os.remove(AUTOTYPE_CACHE)
+                assert not is_autotype_enabled()
+
+        elif args.subcommand == "enable":
+            if not enabled:
+                # dummy operation to create the sqlite3 db file
+                utils.exec(["monkeytype", "list-modules"], silent=True)
+                print("type collection enabled")
+            assert is_autotype_enabled()
+
+        elif args.subcommand == "disable":
+            if enabled:
+                os.remove(AUTOTYPE_CACHE)
+                print("type collection disabled")
+            assert not is_autotype_enabled()
+
+        else:
+            utils.die(f"unknown autotype subcommand: '{args.subcommand}'")
+
+
+def is_autotype_enabled() -> bool:
+    return os.path.exists(AUTOTYPE_CACHE)
 
 
 # entry point

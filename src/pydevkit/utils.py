@@ -3,7 +3,6 @@
 # -------------------------------------------------------------------------------
 #
 import os
-import shlex
 import shutil
 import stat
 import subprocess
@@ -11,6 +10,7 @@ import sys
 from contextlib import contextmanager
 from pathlib import Path
 from timeit import default_timer as timer
+from typing import Iterator
 
 import psutil
 from rich.console import Console
@@ -24,7 +24,7 @@ console = Console()
 #
 # context manager to run a task with timing and error handling
 @contextmanager
-def run_task(name: str, output_header: bool = False):
+def run_task(name: str, output_header: bool = False) -> Iterator[None]:
     depth = run_task.depth  # type: ignore
     indent = "  " * depth
     if output_header:
@@ -81,16 +81,27 @@ run_task.depth = 0  # type: ignore
 # functions
 # -------------------------------------------------------------------------------
 #
-def exec(cmdline: str):
-    # command line to list
-    cmd = shlex.split(cmdline)
+def die(msg: str):
+    console.print(f"[bold red]error:[/] {msg}")
+    sys.exit(1)
+
+
+def exec(cmd, silent: bool = False):
+    stdout = subprocess.DEVNULL if silent else None
     try:
-        subprocess.check_call(cmd, shell=False)
+        subprocess.check_call(cmd, shell=False, stdout=stdout)
     except FileNotFoundError as e:
         raise RuntimeError("command not found: '%s'" % cmd[0] if cmd else "") from e
 
 
-def remove_folder(path):
+def eval(cmd) -> str:
+    try:
+        return subprocess.check_output(cmd, shell=False, encoding="utf-8").strip()
+    except FileNotFoundError as e:
+        raise RuntimeError("command not found: '%s'" % cmd[0] if cmd else "") from e
+
+
+def remove_folder(path: str):
     # https://docs.python.org/3/library/shutil.html#shutil-rmtree-example
 
     if not os.path.exists(path):
@@ -104,7 +115,7 @@ def remove_folder(path):
     shutil.rmtree(path, onexc=remove_readonly)
 
 
-def copy_dir_contents(source_dir, target_dir):
+def copy_dir_contents(source_dir: str, target_dir: str):
     for root, dirs, files in os.walk(source_dir):
         # Compute the relative path from the source
         relative_path = os.path.relpath(root, source_dir)
