@@ -11,3 +11,4 @@ wheels/
 
 # Misc
 monkeytype.sqlite3
+.coverage

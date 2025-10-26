@@ -1,0 +1,15 @@
+{
+	// terminal settings
+	"terminal.integrated.defaultProfile.windows": "Command Prompt",
+	"python.terminal.activateEnvironment": false, // TODO what is better/more consistent, work with 'uv run' or set this to true?
+	// settings for Test Explorer and Test Coverage (Testing view)
+	"python.testing.unittestEnabled": false,
+	"python.testing.pytestEnabled": true,
+	"python.testing.pytestArgs": [
+		"--cov=.", "--cov-branch"
+	],
+	// files to be hidden in explorer
+	"files.exclude": {
+		"**/__pycache__/": true
+	},
+}

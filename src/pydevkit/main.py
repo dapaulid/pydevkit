@@ -6,12 +6,12 @@ import argparse
 import os
 
 import rich_argparse
+import tomllib
 from rich import print
 
 import pydevkit as pkg
 
 from . import utils
-import tomllib
 
 # -------------------------------------------------------------------------------
 # constants
@@ -141,21 +141,20 @@ def cmd_init(args):
 
 def cmd_run(args):
     with utils.run_task("run"):
-
         # determine script to run from project file
         try:
             with open("pyproject.toml", "rb") as f:
                 pyproject = tomllib.load(f)
         except FileNotFoundError:
             raise Exception("no project file found, try running 'pyd init' first")
-        project = pyproject.get('project', {})
-        scripts = project.get('scripts', {})
+        project = pyproject.get("project", {})
+        scripts = project.get("scripts", {})
         if not scripts:
             raise Exception("no script entries found in project file")
         # if there are multiple scripts, just get the first
         script = list(scripts.items())[0]
         script_name = script[0]
-        module_name = script[1].split(':')[0]
+        module_name = script[1].split(":")[0]
 
         cmd = utils.tool_wrapper()
         if (
@@ -204,7 +203,13 @@ def cmd_test(args):
 
         cmd += ["-c", utils.pkg_path("config/pytest.ini")]
         cmd += ["--rootdir", "."]
-        cmd += ["--cov", "--cov-config", utils.pkg_path("config/.coveragerc")]
+        # coverage settings
+        # NOTE: We do NOT use a .coveragerc file, because of compatibility with VS Code,
+        # as it is not easy to share the path to the config file, and the VS Code test plugin
+        # seems to ignore the 'branch = true' setting anyway. Also, we use the default output
+        # location of the .coverage output file, so that the "Test Coverage" view finds it...
+        # This needs to be kept consistent with the settings.json template!
+        cmd += ["--cov=.", "--cov-branch"]
         utils.exec(cmd)
 
 
