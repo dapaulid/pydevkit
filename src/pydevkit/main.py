@@ -139,21 +139,23 @@ def cmd_init(args):
 
 def cmd_run(args):
     with utils.run_task("run"):
+        cmd = utils.tool_wrapper()
         if (
             is_autotype_enabled()
             and "autotype" not in args.params  # avoid self-referential problem
         ):
             print("[ autotype ] collecting type data...")
-            cmd = ["monkeytype", "run", "-m", "pydevkit.main"]
+            cmd += ["monkeytype", "run", "-m", "pydevkit.main"]
         else:
-            cmd = ["uv", "run", "pyd"]
+            cmd += ["pyd"]
         cmd += args.params
         utils.exec(cmd)
 
 
 def cmd_lint(args):
     with utils.run_task("lint"):
-        cmd = ["ruff"]
+        cmd = utils.tool_wrapper()
+        cmd += ["ruff"]
         cmd += ["-q", "--config", utils.config_path("ruff.toml")]
         cmd += ["check", "--fix"]
         utils.exec(cmd)
@@ -161,7 +163,8 @@ def cmd_lint(args):
 
 def cmd_typing(args):
     with utils.run_task("typing"):
-        cmd = ["mypy"]
+        cmd = utils.tool_wrapper()
+        cmd += ["mypy"]
         cmd += ["--config-file", utils.config_path("mypy.ini")]
         cmd += ["."]
         utils.exec(cmd)
@@ -169,7 +172,8 @@ def cmd_typing(args):
 
 def cmd_format(args):
     with utils.run_task("format"):
-        cmd = ["ruff"]
+        cmd = utils.tool_wrapper()
+        cmd += ["ruff"]
         cmd += ["-q", "--config", utils.config_path("ruff.toml")]
         cmd += ["format"]
         utils.exec(cmd)
@@ -177,7 +181,8 @@ def cmd_format(args):
 
 def cmd_test(args):
     with utils.run_task("test"):
-        cmd = ["pytest"]
+        cmd = utils.tool_wrapper()
+        cmd += ["pytest"]
         cmd += ["-c", utils.config_path("pytest.ini")]
         cmd += ["--rootdir", "."]
         cmd += ["--cov", "--cov-config", utils.config_path(".coveragerc")]
@@ -202,15 +207,18 @@ def cmd_autotype(args):
         # check if type collection is enabled
         enabled = is_autotype_enabled()
 
+        cmd = utils.tool_wrapper()
+        cmd += ["monkeytype"]
+
         if args.subcommand == "apply":
             # get modules with type data
-            modules = utils.eval(["monkeytype", "list-modules"]).splitlines()
+            modules = utils.eval(cmd + ["list-modules"]).splitlines()
             if not modules:
                 utils.die("no modules with type data found")
             # apply types to each module
             for module in modules:
                 print(f"applying types: '{module}'")
-                utils.exec(["monkeytype", "apply", module], silent=True)
+                utils.exec(cmd + ["apply", module], silent=True)
             if not enabled:
                 # remove cache to avoid inadvertent data collection
                 os.remove(AUTOTYPE_CACHE)
@@ -219,7 +227,7 @@ def cmd_autotype(args):
         elif args.subcommand == "enable":
             if not enabled:
                 # dummy operation to create the sqlite3 db file
-                utils.exec(["monkeytype", "list-modules"], silent=True)
+                utils.exec(cmd + ["list-modules"], silent=True)
                 print("type collection enabled")
             assert is_autotype_enabled()
 

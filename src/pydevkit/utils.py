@@ -138,5 +138,16 @@ def config_path(filename: str) -> str:
     return cfg_path.as_posix()
 
 
+def tool_wrapper():
+    if is_local_venv():
+        return []  # no wrapper needed
+    else:
+        return ["uv", "run"]  # venv wrapper
+
+
+def is_local_venv() -> bool:
+    return sys.prefix.endswith(".venv")  # TODO verify
+
+
 # -------------------------------------------------------------------------------
 # end of file

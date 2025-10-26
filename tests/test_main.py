@@ -29,12 +29,12 @@ def exec(capsys, command: str):
 # -------------------------------------------------------------------------------
 #
 def test_help(capsys):
-    out = exec(capsys, "pydevkit --help")
+    out = exec(capsys, "pyd --help")
     assert "Examples:" in out, "help text must contain usage examples"
 
 
 def test_version(capsys):
-    out = exec(capsys, "pydevkit --version")
+    out = exec(capsys, "pyd --version")
     assert out == pkg.__version__, "version output must match package version"
 
 
