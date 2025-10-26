@@ -11,6 +11,7 @@ from rich import print
 import pydevkit as pkg
 
 from . import utils
+import tomllib
 
 # -------------------------------------------------------------------------------
 # constants
@@ -140,15 +141,31 @@ def cmd_init(args):
 
 def cmd_run(args):
     with utils.run_task("run"):
+
+        # determine script to run from project file
+        try:
+            with open("pyproject.toml", "rb") as f:
+                pyproject = tomllib.load(f)
+        except FileNotFoundError:
+            raise Exception("no project file found, try running 'pyd init' first")
+        project = pyproject.get('project', {})
+        scripts = project.get('scripts', {})
+        if not scripts:
+            raise Exception("no script entries found in project file")
+        # if there are multiple scripts, just get the first
+        script = list(scripts.items())[0]
+        script_name = script[0]
+        module_name = script[1].split(':')[0]
+
         cmd = utils.tool_wrapper()
         if (
             is_autotype_enabled()
             and "autotype" not in args.params  # avoid self-referential problem
         ):
             print("[ autotype ] collecting type data...")
-            cmd += ["monkeytype", "run", "-m", "pydevkit.main"]
+            cmd += ["monkeytype", "run", "-m", module_name]
         else:
-            cmd += ["pyd"]
+            cmd += [script_name]
         cmd += args.params
         utils.exec(cmd)
 
