@@ -1,14 +1,18 @@
 {
-	// These are the parameters for the VSCode Test Explorer and Test Coverage (Testing view)
-	// TODO --cov-branch must be specified explicitly and not picked up from .coveragerc?
-	"python.testing.pytestArgs": [
-		"--cov",
-		"--cov-config=.coveragerc",
-		"--cov-branch"
-	],
+	// Python interpeter
+	"python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+	// terminal settings
+	"terminal.integrated.defaultProfile.windows": "Command Prompt",
+	// TODO what is better/more consistent, work with 'uv run' or set this to true?
+	"python.terminal.activateEnvironment": false,
+	// settings for Test Explorer and Test Coverage (Testing view)
 	"python.testing.unittestEnabled": false,
 	"python.testing.pytestEnabled": true,
+	"python.testing.pytestArgs": [
+		"--cov=.", "--cov-branch"
+	],
+	// files to be hidden in explorer
 	"files.exclude": {
 		"**/__pycache__/": true
-	}	
+	},
 }
