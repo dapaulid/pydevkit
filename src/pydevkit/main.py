@@ -134,7 +134,8 @@ def main():
 # -------------------------------------------------------------------------------
 #
 def cmd_init(args):
-    utils.copy_dir_contents("templates/project", ".")
+    with utils.run_task("init"):
+        utils.copy_dir_contents(utils.pkg_path("templates/project"), ".")
 
 
 def cmd_run(args):
@@ -156,7 +157,7 @@ def cmd_lint(args):
     with utils.run_task("lint"):
         cmd = utils.tool_wrapper()
         cmd += ["ruff"]
-        cmd += ["-q", "--config", utils.config_path("ruff.toml")]
+        cmd += ["-q", "--config", utils.pkg_path("config/ruff.toml")]
         cmd += ["check", "--fix"]
         utils.exec(cmd)
 
@@ -165,7 +166,7 @@ def cmd_typing(args):
     with utils.run_task("typing"):
         cmd = utils.tool_wrapper()
         cmd += ["mypy"]
-        cmd += ["--config-file", utils.config_path("mypy.ini")]
+        cmd += ["--config-file", utils.pkg_path("config/mypy.ini")]
         cmd += ["."]
         utils.exec(cmd)
 
@@ -174,7 +175,7 @@ def cmd_format(args):
     with utils.run_task("format"):
         cmd = utils.tool_wrapper()
         cmd += ["ruff"]
-        cmd += ["-q", "--config", utils.config_path("ruff.toml")]
+        cmd += ["-q", "--config", utils.pkg_path("config/ruff.toml")]
         cmd += ["format"]
         utils.exec(cmd)
 
@@ -183,9 +184,10 @@ def cmd_test(args):
     with utils.run_task("test"):
         cmd = utils.tool_wrapper()
         cmd += ["pytest"]
-        cmd += ["-c", utils.config_path("pytest.ini")]
+
+        cmd += ["-c", utils.pkg_path("config/pytest.ini")]
         cmd += ["--rootdir", "."]
-        cmd += ["--cov", "--cov-config", utils.config_path(".coveragerc")]
+        cmd += ["--cov", "--cov-config", utils.pkg_path("config/.coveragerc")]
         utils.exec(cmd)
 
 

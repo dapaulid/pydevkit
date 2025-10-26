@@ -116,6 +116,10 @@ def remove_folder(path: str):
 
 
 def copy_dir_contents(source_dir: str, target_dir: str):
+    if not os.path.exists(source_dir):
+        raise FileNotFoundError(f"Source directory not found: '{source_dir}'")
+    if not os.path.exists(target_dir):
+        raise FileNotFoundError(f"Target directory not found: '{target_dir}'")
     for root, dirs, files in os.walk(source_dir):
         # Compute the relative path from the source
         relative_path = os.path.relpath(root, source_dir)
@@ -130,12 +134,12 @@ def copy_dir_contents(source_dir: str, target_dir: str):
             shutil.copy2(source_file, target_file)
 
 
-def config_path(filename: str) -> str:
+def pkg_path(path_suffix: str) -> str:
     root_dir = Path(__file__).resolve().parent.parent.parent
-    cfg_path = root_dir / "config" / filename
-    if not cfg_path.exists():
-        raise FileNotFoundError(f"Config file not found: {cfg_path}")
-    return cfg_path.as_posix()
+    pkg_path = root_dir / path_suffix
+    if not pkg_path.exists():
+        raise FileNotFoundError(f"Package file not found: {pkg_path}")
+    return pkg_path.as_posix()
 
 
 def tool_wrapper():
